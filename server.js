@@ -1,9 +1,12 @@
 const path = require('path')
 const fs = require('fs')
-const http = require('http')
-const https = require('https')
 const modurl = require('url')
 const cache = require('./lib/cache')
+
+const http = require('http')
+const https = require('https')
+// var httpAgent = new http.Agent({ keepAlive: true })
+// var httpsAgent = new https.Agent({ keepAlive: true })
 
 const LOCAL_ROOT = 'http://localhost:8080'
 const PROXY_HOST = 'survivejs.com'
@@ -31,8 +34,12 @@ function proxy(req, res) {
 	var opts = modurl.parse(url)
 	opts.method = req.method
 	opts.headers = headers
-	// use globalAgent
-	// opts.agent = false
+
+	// if opts.agent is undefined, http.globalAgent object will be used
+	// use an explicit keep alive agent
+	// opts.agent = httpAgent
+	// disable keep-alive sockets
+	opts.agent = false
 
 	var cached = cache.load(opts)
 	if (cached) {
@@ -46,12 +53,10 @@ function proxy(req, res) {
 	var client = http
 	if (opts.protocol === 'https:') {
 		client = https
+		// opts.agent = httpsAgent
 		opts.port = 443
 	}
 	// console.log('opts', opts)
-
-	console.log(opts.method, opts.href)
-	// console.log(opts.headers)
 
 	var requ = client.request(opts, onResponse)
 	req.on('error', function(err) {
@@ -67,8 +72,13 @@ function proxy(req, res) {
 	})
 
 	function onResponse(resp) {
+		console.log('request', opts.method, opts.href)
+		// console.log('keep-alive', requ.shouldKeepAlive)
+		// console.log('headers', requ._headers)
 		// console.log('response', resp.statusCode, resp.statusMessage)
-		// console.log(resp.headers)
+		// console.log('headers', resp.headers)
+		// console.log('\n')
+
 		resp.on('error', function(err) {
 			console.error('response error', err)
 			res.writeHead(resp.statusCode, resp.statusMessage, resp.headers)
@@ -88,7 +98,7 @@ function proxy(req, res) {
 			if (location1) {
 				location2 = location1.replace(PROXY_REGX, LOCAL_ROOT)
 				resp.headers['location'] = location2
-				console.log('location', location1, location2)
+				// console.log('location', location1, location2)
 			}
 
 			// replace the absolute urls and unpdate the content-length
