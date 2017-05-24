@@ -105,6 +105,7 @@ function proxy(req, res) {
 			if (/text\/html/.test(resp.headers['content-type'])) {
 				data = data.toString()
 				data = data.replace(PROXY_REGX, '')
+				data = data.replace(/<script[\s\S]+?<\/script>/ig, '')
 				data = new Buffer(data)
 				resp.headers['content-length'] = data.length
 			}
