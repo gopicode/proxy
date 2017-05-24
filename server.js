@@ -8,10 +8,10 @@ const https = require('https')
 // var httpAgent = new http.Agent({ keepAlive: true })
 // var httpsAgent = new https.Agent({ keepAlive: true })
 
-const LOCAL_ROOT = 'http://localhost:8080'
-const PROXY_HOST = 'survivejs.com'
+const PROXY_HOST = 'developer.chrome.com'
 const PROXY_ROOT = 'https://' + PROXY_HOST
 const PROXY_REGX = new RegExp('https?\:\/\/' + PROXY_HOST, 'ig')
+const LOCAL_ROOT = 'http://localhost:8080'
 
 function clone(obj) {
 	return JSON.parse(JSON.stringify(obj));
