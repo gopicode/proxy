@@ -1,6 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const modurl = require('url')
+const config = require('./config')
 const cache = require('./lib/cache')
 
 const http = require('http')
@@ -8,40 +9,16 @@ const https = require('https')
 // var httpAgent = new http.Agent({ keepAlive: true })
 // var httpsAgent = new https.Agent({ keepAlive: true })
 
-const PROXY_HOST = 'developer.chrome.com'
-const PROXY_ROOT = 'https://' + PROXY_HOST
-const PROXY_REGX = new RegExp('https?\:\/\/' + PROXY_HOST, 'ig')
-const LOCAL_ROOT = 'http://localhost:8080'
-
-function clone(obj) {
-	return JSON.parse(JSON.stringify(obj));
-}
-
-function app(req, res) {
-	res.setHeader('Content-Type', 'text/plain')
-	res.statusCode = 200
-	res.write("This is proxy Server\n\nNext line")
-	res.end()
-}
 
 function proxy(req, res) {
-	var url = PROXY_ROOT + req.url
-	var headers = {
-		'host': PROXY_HOST,
+	var href = config.PROXY_ROOT + req.url
+	var opts = modurl.parse(href)
+	opts.agent = false
+	opts.headers = {
 		'user-agent': req.headers['user-agent']
 	}
 
-	var opts = modurl.parse(url)
-	opts.method = req.method
-	opts.headers = headers
-
-	// if opts.agent is undefined, http.globalAgent object will be used
-	// use an explicit keep alive agent
-	// opts.agent = httpAgent
-	// disable keep-alive sockets
-	opts.agent = false
-
-	var cached = cache.load(opts)
+	var cached = config.CACHE_ENABLED ? cache.load(opts) : null
 	if (cached) {
 		res.writeHead(200, cached.head)
 		res.write(cached.data)
@@ -96,18 +73,25 @@ function proxy(req, res) {
 			// replace the redirects
 			var location1 = resp.headers['location']
 			if (location1) {
-				location2 = location1.replace(PROXY_REGX, LOCAL_ROOT)
+				location2 = location1.replace(config.PROXY_ROOT, '')
 				resp.headers['location'] = location2
-				// console.log('location', location1, location2)
+				console.log('location', [location1, location2])
 			}
 
-			// replace the absolute urls and unpdate the content-length
 			if (/text\/html/.test(resp.headers['content-type'])) {
 				data = data.toString()
-				data = data.replace(PROXY_REGX, '')
+
+				// change absoulte urls to relative
+				data = data.replace(new RegExp(config.PROXY_ROOT, 'ig'), '')
+
+				// remove script blocks
 				data = data.replace(/<script[\s\S]+?<\/script>/ig, '')
-				data = new Buffer(data)
-				resp.headers['content-length'] = data.length
+
+				// replace the hrefs
+				// data = data.replace(/(href=['"]?\/)/ig, '$1' + proxyHost + '/')
+
+				// update the content length header
+				resp.headers['content-length'] = Buffer.byteLength(data)
 			}
 
 			cache.save(opts, resp, data)

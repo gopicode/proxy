@@ -1,3 +1,3 @@
-#Node proxy server
+# Proxy server
 
-Proxy server to cache the files
+Reverse proxy server that caches the content in the local disk. It is usefull to mirror some content/document sites
