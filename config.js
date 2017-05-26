@@ -7,6 +7,9 @@ exports.PROXY_ROOT_REGX = new RegExp('https?://' + exports.PROXY_ROOT.split('//'
 // this local server. change this if any custom domain name is used
 exports.LOCAL_ROOT = 'http://localhost:8080'
 
+// TCP port number of this server
+exports.LOCAL_PORT = 8080
+
 // directory path to save/serve the content
 exports.CACHE_ROOT = process.env.HOME + '/backup/html/sites'
 

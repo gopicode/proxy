@@ -106,8 +106,13 @@ function proxy(req, res) {
 	}
 }
 
+if (config.CACHE_ENABLED && !fs.existsSync(config.CACHE_ROOT)) {
+	console.error('Please create the cache directory:', config.CACHE_ROOT)
+	process.exit(1)
+}
+
 // start the server
-const PORT = process.env.NODE_PORT || 8080
+const PORT = process.env.NODE_PORT || config.LOCAL_PORT || 8080
 const server = http.createServer(proxy)
 server.on('error', function(err) {
 	console.error(err)
