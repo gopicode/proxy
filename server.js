@@ -12,12 +12,23 @@ const https = require('https')
 
 function proxy(req, res) {
 	var href = config.PROXY_ROOT + req.url
+	var client = http
+
+	// set up the request options
 	var opts = modurl.parse(href)
 	opts.agent = false
+	opts.method = req.method
 	opts.headers = {
+		'host': opts.host,
 		'user-agent': req.headers['user-agent']
 	}
+	if (opts.protocol === 'https:') {
+		client = https
+		opts.port = 443
+	}
+	// console.log('opts', opts)
 
+	// serve from cache
 	var cached = config.CACHE_ENABLED ? cache.load(opts) : null
 	if (cached) {
 		res.writeHead(200, cached.head)
@@ -26,15 +37,8 @@ function proxy(req, res) {
 		return;
 	}
 
+	// request the upstream
 	var chunks = []
-	var client = http
-	if (opts.protocol === 'https:') {
-		client = https
-		// opts.agent = httpsAgent
-		opts.port = 443
-	}
-	// console.log('opts', opts)
-
 	var requ = client.request(opts, onResponse)
 	req.on('error', function(err) {
 		console.error('request error', err)
@@ -73,7 +77,7 @@ function proxy(req, res) {
 			// replace the redirects
 			var location1 = resp.headers['location']
 			if (location1) {
-				location2 = location1.replace(config.PROXY_ROOT, '')
+				location2 = location1.replace(config.PROXY_ROOT_REGX, config.LOCAL_ROOT)
 				resp.headers['location'] = location2
 				console.log('location', [location1, location2])
 			}
@@ -82,7 +86,7 @@ function proxy(req, res) {
 				data = data.toString()
 
 				// change absoulte urls to relative
-				data = data.replace(new RegExp(config.PROXY_ROOT, 'ig'), '')
+				data = data.replace(config.PROXY_ROOT_REGX, '')
 
 				// remove script blocks
 				data = data.replace(/<script[\s\S]+?<\/script>/ig, '')
@@ -102,6 +106,7 @@ function proxy(req, res) {
 	}
 }
 
+// start the server
 const PORT = process.env.NODE_PORT || 8080
 const server = http.createServer(proxy)
 server.on('error', function(err) {
