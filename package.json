@@ -1,7 +1,7 @@
 {
   "name": "proxy",
   "version": "1.0.0",
-  "description": "",
+  "description": "Reverse proxy server that caches the content in the local disk",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
