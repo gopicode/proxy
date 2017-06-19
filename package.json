@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemon -w lib/ -w server.js server.js"
+    "dev": "nodemon -w lib/ -w server.js -w config.js server.js"
   },
   "author": "gopicode1@gmail.com",
   "license": "MIT",

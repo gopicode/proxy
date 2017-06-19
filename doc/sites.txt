@@ -2,3 +2,8 @@ https://davidkpiano.github.io/react-redux-form/docs/guides/quickstart.html
 https://survivejs.com/webpack/preface/
 https://developer.chrome.com/extensions
 https://developer.mozilla.org/en-US/docs/Web/HTTP
+https://ory.gitbooks.io/editor/content/
+https://developer.apple.com/develop/
+https://developer.android.com/index.html
+https://webpack.js.org/
+https://storybook.js.org/basics/introduction/
