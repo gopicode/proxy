@@ -11,25 +11,29 @@ const https = require('https')
 
 
 function proxy(req, res) {
-	var href = config.PROXY_ROOT + req.url
+	// req.url itself should be the absolute url of the target server
+	// example "/http://example.com/some/path/to/res?mode=1&type=n"
+	var href = req.url.slice(1);
 	var client = http
 
 	// set up the request options
 	var opts = modurl.parse(href)
 	opts.agent = false
 	opts.method = req.method
-	opts.headers = {
+	opts.headers = Object.assign({}, req.headers, {
 		'host': opts.host,
 		'user-agent': req.headers['user-agent']
-	}
+	})
 	if (opts.protocol === 'https:') {
 		client = https
 		opts.port = 443
 	}
 	// console.log('opts', opts)
+	console.log(opts.method, opts.href) //, opts.headers);
+	// res.write(JSON.stringify(opts, null, 4)); res.end(); return;
 
 	// serve from cache
-	var cached = config.CACHE_ENABLED ? cache.load(opts) : null
+	var cached = (config.CACHE_ENABLED && req.method === 'GET') ? cache.load(opts) : null
 	if (cached) {
 		res.writeHead(200, cached.head)
 		res.write(cached.data)
@@ -68,49 +72,18 @@ function proxy(req, res) {
 		resp.on('data', function(chunk) {
 			// res.write(chunk)
 			chunks.push(chunk)
-			// console.log('response data', chunk.toString())
+			console.log('response data', chunk.toString())
 		})
 		resp.on('end', function() {
 			// console.log('response end')
-			var data = Buffer.concat(chunks)
+			const data = Buffer.concat(chunks)
 
-			// replace the redirects
-			var location1 = resp.headers['location']
-			if (location1) {
-				location2 = location1.replace(config.PROXY_ROOT_REGX, config.LOCAL_ROOT)
-				resp.headers['location'] = location2
-				console.log('location', [location1, location2])
-			}
-
-			if (/text\/html/.test(resp.headers['content-type'])) {
-				data = data.toString()
-
-				// change absoulte urls to relative
-				data = data.replace(config.PROXY_ROOT_REGX, '')
-
-				// remove script blocks
-				data = data.replace(/<script>[\s\S]+?<\/script>/ig, '')
-				data = data.replace(/<script(.*?)(type="[^"]+")>[\s\S]+?<\/script>/ig, '')
-				data = data.replace(/<script(.*?)(src="https?:\/\/[^"]+")(.*?)>[\s\S]+?<\/script>/ig, '')
-
-				// replace the hrefs
-				// data = data.replace(/(href=['"]?\/)/ig, '$1' + proxyHost + '/')
-
-				// update the content length header
-				resp.headers['content-length'] = Buffer.byteLength(data)
-			}
-
-			cache.save(opts, resp, data)
+			if (config.CACHE_ENABLED && req.method === 'GET') cache.save(opts, resp, data)
 			res.writeHead(resp.statusCode, resp.statusMessage, resp.headers)
 			res.write(data)
 			res.end()
 		})
 	}
-}
-
-if (config.CACHE_ENABLED && !fs.existsSync(config.CACHE_ROOT)) {
-	console.error('Please create the cache directory:', config.CACHE_ROOT)
-	process.exit(1)
 }
 
 // start the server
