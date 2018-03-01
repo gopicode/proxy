@@ -8,6 +8,7 @@ const http = require('http')
 const https = require('https')
 // var httpAgent = new http.Agent({ keepAlive: true })
 // var httpsAgent = new https.Agent({ keepAlive: true })
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
 
 
 function proxy(req, res) {
@@ -22,14 +23,14 @@ function proxy(req, res) {
 	opts.method = req.method
 	opts.headers = Object.assign({}, req.headers, {
 		'host': opts.host,
-		'user-agent': req.headers['user-agent']
+		'user-agent': req.headers['user-agent'] || UA
 	})
 	if (opts.protocol === 'https:') {
 		client = https
 		opts.port = 443
 	}
 	// console.log('opts', opts)
-	console.log(opts.method, opts.href) //, opts.headers);
+	console.log(opts.method, opts.href, opts.headers);
 	// res.write(JSON.stringify(opts, null, 4)); res.end(); return;
 
 	// serve from cache
@@ -42,8 +43,15 @@ function proxy(req, res) {
 	}
 
 	// request the upstream
+	var timeout = 600000;
 	var chunks = []
 	var requ = client.request(opts, onResponse)
+	requ.setTimeout(timeout);
+	req.on('timeout', function() {
+		console.error('Socket timeout after ' + timeout + 'ms');
+		req.abort();
+	})
+
 	req.on('error', function(err) {
 		console.error('request error', err)
 	})
@@ -57,7 +65,7 @@ function proxy(req, res) {
 	})
 
 	function onResponse(resp) {
-		console.log('request', opts.method, opts.href)
+		// console.log('request', opts.method, opts.href)
 		// console.log('keep-alive', requ.shouldKeepAlive)
 		// console.log('headers', requ._headers)
 		// console.log('response', resp.statusCode, resp.statusMessage)
@@ -72,7 +80,7 @@ function proxy(req, res) {
 		resp.on('data', function(chunk) {
 			// res.write(chunk)
 			chunks.push(chunk)
-			console.log('response data', chunk.toString())
+			// console.log('response data', chunk.toString())
 		})
 		resp.on('end', function() {
 			// console.log('response end')
