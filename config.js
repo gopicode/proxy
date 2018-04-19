@@ -1,6 +1,5 @@
 // proxy server
-// exports.PROXY_ROOT = 'https://survivejs.com'
-exports.PROXY_ROOT = 'https://developer.android.com'
+exports.PROXY_ROOT = 'https://httpbin.org'
 
 // regular expression to grep the proxy root (in the location header and href/src attributes of html)
 exports.PROXY_ROOT_REGX = new RegExp('https?://' + exports.PROXY_ROOT.split('//')[1], 'ig')
@@ -12,7 +11,7 @@ exports.LOCAL_ROOT = 'http://localhost:8080'
 exports.LOCAL_PORT = 9000
 
 // directory path to save/serve the content
-exports.CACHE_ROOT = process.env.HOME + '/backup/html/sites'
+exports.CACHE_ROOT = process.env.HOME + '/www'
 
 // enable or disable saving the content
 exports.CACHE_ENABLED = true
