@@ -5,9 +5,9 @@ const config = require('./config')
 const http = require('http')
 const https = require('https')
 
-// const proxy = require('./lib/proxyEcho')
+const proxy = require('./lib/proxyEcho')
 // const proxy = require('./lib/proxySimple')
-const proxy = require('./lib/proxyHtml')
+// const proxy = require('./lib/proxyHtml')
 
 if (config.CACHE_ENABLED && !fs.existsSync(config.CACHE_ROOT)) {
 	console.error('Please create the cache directory:', config.CACHE_ROOT)
