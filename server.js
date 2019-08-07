@@ -5,13 +5,18 @@ const config = require('./config')
 const http = require('http')
 const https = require('https')
 
-const proxy = require('./lib/proxyEcho')
-// const proxy = require('./lib/proxySimple')
+// const proxy = require('./lib/proxyEcho')
+const proxy = require('./lib/proxySimple')
 // const proxy = require('./lib/proxyHtml')
+// const proxy = require('./lib/proxyRecord')
 
-if (config.CACHE_ENABLED && !fs.existsSync(config.CACHE_ROOT)) {
-	console.error('Please create the cache directory:', config.CACHE_ROOT)
-	process.exit(1)
+if (config.CACHE_ENABLED) {
+	console.log('CACHE_ENABLED cache directory:', config.CACHE_ROOT);
+
+	if (!fs.existsSync(config.CACHE_ROOT)) {
+		console.error('Please create the cache directory:', config.CACHE_ROOT)
+		process.exit(1)
+	}
 }
 
 // start the server
