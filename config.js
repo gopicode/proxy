@@ -1,5 +1,5 @@
 // proxy server
-exports.PROXY_ROOT = 'http://registry.myntra.com:8000';
+exports.PROXY_ROOT = 'http://localhost:8000';
 
 // regular expression to grep the proxy root (in the location header and href/src attributes of html)
 exports.PROXY_ROOT_REGX = new RegExp('https?://' + exports.PROXY_ROOT.split('//')[1], 'ig')
