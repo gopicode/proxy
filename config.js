@@ -13,4 +13,4 @@ exports.LOCAL_PORT = 9000
 // cache
 exports.CACHE_ENABLED = true
 exports.CACHE_ROOT = process.env.HOME + '/www'
-exports.CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+exports.CACHE_TTL = 360 * 24 * 60 * 60; // in seconds
